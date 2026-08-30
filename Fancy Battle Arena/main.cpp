@@ -16,7 +16,112 @@ float powerPosY = 0.0;
 float powerSpeed = 2.0f;
 float powerRadius = 1.5f;
 
+float e1houseX = -15.0f;
+float e1houseY = 10.0f;
+
+float enemy1X = 15.0f;
+float enemy1Y = -10.0f;
+
+float enemy2X = -21.0f;
+float enemy2Y = 10.0f;
+
+float enemy3X = 10.0f;
+float enemy3Y = -15.0f;
+
+float enemyRadius = 2.0f;
+
+bool enemy1Alive = true;
+bool enemy2Alive = true;
+bool enemy3Alive = true;
+
 std::string powerDirection = "Right";
+
+bool collision(float powerX, float powerY, float enemyX, float enemyY)
+{
+    float dx = powerX - enemyX;
+    float dy = powerY - enemyY;
+
+    float distance = sqrt(dx * dx + dy * dy);
+
+    if (distance <= powerRadius + enemyRadius)
+        return true;
+
+    return false;
+}
+
+void updateEnemy(int val)
+{
+    if (enemy1Alive)
+    {
+        if (enemy1X < e1houseX)
+            enemy1X += 0.05f;
+
+        if (enemy1X > e1houseX)
+            enemy1X -= 0.05f;
+
+        if (enemy1Y < e1houseY)
+            enemy1Y += 0.05f;
+
+        if (enemy1Y > e1houseY)
+            enemy1Y -= 0.05f;
+    }
+
+
+    if (enemy2Alive)
+    {
+        if (enemy2X < e1houseX)
+            enemy2X += 0.05f;
+
+        if (enemy2X > e1houseX)
+            enemy2X -= 0.05f;
+
+        if (enemy2Y < e1houseY)
+            enemy2Y += 0.05f;
+
+        if (enemy2Y > e1houseY)
+            enemy2Y -= 0.05f;
+    }
+
+
+    if (enemy3Alive)
+    {
+        if (enemy3X < e1houseX)
+            enemy3X += 0.05f;
+
+        if (enemy3X > e1houseX)
+            enemy3X -= 0.05f;
+
+        if (enemy3Y < e1houseY)
+            enemy3Y += 0.05f;
+
+        if (enemy3Y > e1houseY)
+            enemy3Y -= 0.05f;
+    }
+
+    glutPostRedisplay();
+    glutTimerFunc(14, updateEnemy, 0);
+}
+
+void Enemy(float enemyX, float enemyY)
+{
+    glColor3f(1.0f, 0.0f, 0.0f);
+
+    glBegin(GL_TRIANGLE_FAN);
+
+        glVertex2f(enemyX, enemyY);
+
+        for (int i = 0; i <= 360; i++)
+        {
+            float enemyAngle = i * 3.14159f / 180.0f;
+
+            float x = enemyX + enemyRadius * cos(enemyAngle);
+            float y = enemyY + enemyRadius * sin(enemyAngle);
+
+            glVertex2f(x, y);
+        }
+
+    glEnd();
+}
 
 void Power()
 {
@@ -51,10 +156,10 @@ void Power()
 
         for (int i = 0; i <= 360; i++)
         {
-            float angle = i * 3.14159f / 180.0f;
+            float powerAngle = i * 3.14159f / 180.0f;
 
-            float x = powerRadius * cos(angle);
-            float y = powerRadius * sin(angle);
+            float x = powerRadius * cos(powerAngle);
+            float y = powerRadius * sin(powerAngle);
 
             glVertex2f(x, y);
         }
@@ -87,10 +192,10 @@ void Player()
 
     for (int i = 0; i <= 360; i++)
     {
-        float angle = i * 3.1416 / 180;
+        float playerAngle = i * 3.1416 / 180;
 
-        float x = cX + r * cos(angle);
-        float y = cY + r * sin(angle);
+        float x = cX + r * cos(playerAngle);
+        float y = cY + r * sin(playerAngle);
 
         glVertex2f(x, y);
     }
@@ -163,6 +268,15 @@ void display()
 
     Power();
 
+    if (enemy1Alive)
+        Enemy(enemy1X, enemy1Y);
+
+    if (enemy2Alive)
+        Enemy(enemy2X, enemy2Y);
+
+    if (enemy3Alive)
+        Enemy(enemy3X, enemy3Y);
+
     glTranslatef(25, -25, 0);
     glRotatef(angle, 1, 1, 0);
 
@@ -216,20 +330,34 @@ void updatePower(int value)
     if (powerActive)
     {
         if (powerDirection == "Up")
-        {
             powerPosY += powerSpeed;
-        }
+
         else if (powerDirection == "Down")
-        {
             powerPosY -= powerSpeed;
-        }
+
         else if (powerDirection == "Left")
-        {
             powerPosX -= powerSpeed;
-        }
+
         else if (powerDirection == "Right")
-        {
             powerPosX += powerSpeed;
+
+
+        if (enemy1Alive && collision(powerPosX, powerPosY, enemy1X, enemy1Y))
+        {
+            enemy1Alive = false;
+            powerActive = false;
+        }
+
+        if (enemy2Alive && collision(powerPosX, powerPosY, enemy2X, enemy2Y))
+        {
+            enemy2Alive = false;
+            powerActive = false;
+        }
+
+        if (enemy3Alive && collision(powerPosX, powerPosY, enemy3X, enemy3Y))
+        {
+            enemy3Alive = false;
+            powerActive = false;
         }
     }
 
@@ -300,6 +428,7 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
 
     glutDisplayFunc(display);
+    glutTimerFunc(0, updateEnemy, 0);
     glutTimerFunc(16, update, 0);
     glutTimerFunc(0, updatePower, 0);
     glutKeyboardFunc(keyboard);
