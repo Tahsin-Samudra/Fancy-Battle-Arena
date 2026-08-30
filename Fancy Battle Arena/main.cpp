@@ -1,8 +1,77 @@
 #include <GL/glut.h>
 #include <cmath>
+#include <cstring>
+#include <string>
 
 float angle = 0;
 float tx = 0.0, ty = 0.0;
+
+std::string Direction = "Right";
+
+bool powerActive = false;
+
+float powerPosX = 0.0;
+float powerPosY = 0.0;
+
+float powerSpeed = 2.0f;
+float powerRadius = 1.5f;
+
+std::string powerDirection = "Right";
+
+void Power()
+{
+    if (!powerActive)
+        return;
+
+    glTranslatef(powerPosX, powerPosY, 0);
+
+    if (powerDirection == "Up")
+        glRotatef(90, 0, 0, 1);
+
+    else if (powerDirection == "Down")
+        glRotatef(-90, 0, 0, 1);
+
+    else if (powerDirection == "Left")
+        glRotatef(180, 0, 0, 1);
+
+    glColor3f(0.0f, 1.0f, 1.0f);
+
+    glBegin(GL_QUADS);
+
+        glVertex2f(-9, -1);
+        glVertex2f(-0.5, -1);
+        glVertex2f(-0.5, 1);
+        glVertex2f(-9, 1);
+
+    glEnd();
+
+    glBegin(GL_TRIANGLE_FAN);
+
+        glVertex2f(0, 0);
+
+        for (int i = 0; i <= 360; i++)
+        {
+            float angle = i * 3.14159f / 180.0f;
+
+            float x = powerRadius * cos(angle);
+            float y = powerRadius * sin(angle);
+
+            glVertex2f(x, y);
+        }
+
+    glEnd();
+
+    if (powerDirection == "Up")
+        glRotatef(-90, 0, 0, 1);
+
+    else if (powerDirection == "Down")
+        glRotatef(90, 0, 0, 1);
+
+    else if (powerDirection == "Left")
+        glRotatef(-180, 0, 0, 1);
+
+    glTranslatef(-powerPosX, -powerPosY, 0);
+}
 
 void Player()
 {
@@ -16,7 +85,7 @@ void Player()
 
     glBegin(GL_POLYGON);
 
-    for(int i = 0; i <= 360; i++)
+    for (int i = 0; i <= 360; i++)
     {
         float angle = i * 3.1416 / 180;
 
@@ -92,6 +161,8 @@ void display()
 
     Player();
 
+    Power();
+
     glTranslatef(25, -25, 0);
     glRotatef(angle, 1, 1, 0);
 
@@ -140,6 +211,32 @@ void display()
     glutSwapBuffers();
 }
 
+void updatePower(int value)
+{
+    if (powerActive)
+    {
+        if (powerDirection == "Up")
+        {
+            powerPosY += powerSpeed;
+        }
+        else if (powerDirection == "Down")
+        {
+            powerPosY -= powerSpeed;
+        }
+        else if (powerDirection == "Left")
+        {
+            powerPosX -= powerSpeed;
+        }
+        else if (powerDirection == "Right")
+        {
+            powerPosX += powerSpeed;
+        }
+    }
+
+    glutPostRedisplay();
+    glutTimerFunc(35, updatePower, 0);
+}
+
 void update(int value)
 {
     angle += 1;
@@ -150,21 +247,34 @@ void update(int value)
 
 void keyboard(unsigned char c, int x, int y)
 {
-    if(c == 'w')
+    if (c == 'w')
     {
         ty += 1;
+        Direction = "Up";
     }
-    else if(c == 's')
+    else if (c == 's')
     {
         ty -= 1;
+        Direction = "Down";
     }
-    else if(c == 'a')
+    else if (c == 'a')
     {
         tx -= 1;
+        Direction = "Left";
     }
-    else if(c == 'd')
+    else if (c == 'd')
     {
         tx += 1;
+        Direction = "Right";
+    }
+    else if (c == 'j')
+    {
+        powerActive = true;
+
+        powerPosX = tx;
+        powerPosY = ty;
+
+        powerDirection = Direction;
     }
 
     glutPostRedisplay();
@@ -191,6 +301,7 @@ int main(int argc, char** argv)
 
     glutDisplayFunc(display);
     glutTimerFunc(16, update, 0);
+    glutTimerFunc(0, updatePower, 0);
     glutKeyboardFunc(keyboard);
 
     glutMainLoop();

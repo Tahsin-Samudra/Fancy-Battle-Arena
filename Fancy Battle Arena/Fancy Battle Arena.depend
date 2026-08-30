@@ -1,7 +1,9 @@
 # depslib dependency file v1.0
-1788012854 source:e:\computer graphics\proinit\fancy battle arena\main.cpp
+1788075402 source:e:\computer graphics\proinit\fancy battle arena\main.cpp
 	<GL/glut.h>
 	<cmath>
+	<cstring>
+	<string>
 
 1782367325 c:\program files\codeblocks\mingw\x86_64-w64-mingw32\include\gl\glut.h
 	"freeglut_std.h"
