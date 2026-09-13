@@ -8,7 +8,16 @@ float tx = 0.0, ty = 0.0;
 
 std::string Direction = "Right";
 
+
+
+
 bool powerActive = false;
+
+float playerHealth = 100.0f;
+float playerMaxHealth = 100.0f;
+
+float houseHealth = 100.0f;
+float houseMaxHealth = 100.0f;
 
 float powerPosX = 0.0;
 float powerPosY = 0.0;
@@ -16,8 +25,14 @@ float powerPosY = 0.0;
 float powerSpeed = 2.0f;
 float powerRadius = 1.5f;
 
-float e1houseX = -15.0f;
-float e1houseY = 10.0f;
+float e1houseX = -21.0f;
+float e1houseY = 18.0f;
+
+float houseTargetX = e1houseX;
+float houseTargetY = e1houseY;
+float houseDamageRadius = 3.0f;
+float houseDamageRate = 0.15f;
+
 float rotation = 0.0;
 float enemy1X = 15.0f;
 float enemy1Y = -10.0f;
@@ -49,53 +64,102 @@ bool collision(float powerX, float powerY, float enemyX, float enemyY)
     return false;
 }
 
+void drawHealthBarChunks(float x, float y, float chunkWidth, float chunkHeight,
+                          float spacing, int totalChunks, int filledChunks,
+                          float r, float g, float b)
+{
+    glDisable(GL_DEPTH_TEST);
+
+    for (int i = 0; i < totalChunks; i++)
+    {
+        float chunkX = x + i * (chunkWidth + spacing);
+
+        // filled or empty color
+        if (i < filledChunks)
+            glColor3f(r, g, b);
+        else
+            glColor3f(0.2f, 0.2f, 0.2f);
+
+        glBegin(GL_QUADS);
+            glVertex2f(chunkX, y);
+            glVertex2f(chunkX + chunkWidth, y);
+            glVertex2f(chunkX + chunkWidth, y + chunkHeight);
+            glVertex2f(chunkX, y + chunkHeight);
+        glEnd();
+
+        // border
+        glColor3f(0, 0, 0);
+        glBegin(GL_LINE_LOOP);
+            glVertex2f(chunkX, y);
+            glVertex2f(chunkX + chunkWidth, y);
+            glVertex2f(chunkX + chunkWidth, y + chunkHeight);
+            glVertex2f(chunkX, y + chunkHeight);
+        glEnd();
+    }
+    glEnable(GL_DEPTH_TEST);
+}
+
+
 void updateEnemy(int val)
 {
     if (enemy1Alive)
     {
         if (enemy1X < e1houseX)
             enemy1X += 0.05f;
-
         if (enemy1X > e1houseX)
             enemy1X -= 0.05f;
-
         if (enemy1Y < e1houseY)
             enemy1Y += 0.05f;
-
         if (enemy1Y > e1houseY)
             enemy1Y -= 0.05f;
+
+
+        float dx = enemy1X - houseTargetX;
+        float dy = enemy1Y - houseTargetY;
+        float dist = sqrt(dx * dx + dy * dy);
+
+        if (dist <= houseDamageRadius)
+        {
+            houseHealth -= houseDamageRate;
+            if (houseHealth < 0) houseHealth = 0;
+        }
     }
 
-
+    // repeat the same block for enemy2Alive and enemy3Alive
     if (enemy2Alive)
     {
-        if (enemy2X < e1houseX)
-            enemy2X += 0.05f;
+        if (enemy2X < e1houseX) enemy2X += 0.05f;
+        if (enemy2X > e1houseX) enemy2X -= 0.05f;
+        if (enemy2Y < e1houseY) enemy2Y += 0.05f;
+        if (enemy2Y > e1houseY) enemy2Y -= 0.05f;
 
-        if (enemy2X > e1houseX)
-            enemy2X -= 0.05f;
+        float dx = enemy2X - houseTargetX;
+        float dy = enemy2Y - houseTargetY;
+        float dist = sqrt(dx * dx + dy * dy);
 
-        if (enemy2Y < e1houseY)
-            enemy2Y += 0.05f;
-
-        if (enemy2Y > e1houseY)
-            enemy2Y -= 0.05f;
+        if (dist <= houseDamageRadius)
+        {
+            houseHealth -= houseDamageRate;
+            if (houseHealth < 0) houseHealth = 0;
+        }
     }
-
 
     if (enemy3Alive)
     {
-        if (enemy3X < e1houseX)
-            enemy3X += 0.05f;
+        if (enemy3X < e1houseX) enemy3X += 0.05f;
+        if (enemy3X > e1houseX) enemy3X -= 0.05f;
+        if (enemy3Y < e1houseY) enemy3Y += 0.05f;
+        if (enemy3Y > e1houseY) enemy3Y -= 0.05f;
 
-        if (enemy3X > e1houseX)
-            enemy3X -= 0.05f;
+        float dx = enemy3X - houseTargetX;
+        float dy = enemy3Y - houseTargetY;
+        float dist = sqrt(dx * dx + dy * dy);
 
-        if (enemy3Y < e1houseY)
-            enemy3Y += 0.05f;
-
-        if (enemy3Y > e1houseY)
-            enemy3Y -= 0.05f;
+        if (dist <= houseDamageRadius)
+        {
+            houseHealth -= houseDamageRate;
+            if (houseHealth < 0) houseHealth = 0;
+        }
     }
 
     glutPostRedisplay();
@@ -370,6 +434,15 @@ void display()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    glLoadIdentity();
+
+    int totalChunks = 5;
+    int filledHealthChunks = (int)ceil((playerHealth / playerMaxHealth) * totalChunks);
+    drawHealthBarChunks(15, 27, 1.4, 1.2, 0.3, totalChunks, filledHealthChunks, 0, 1, 0);
+
+    int filledHouseChunks = (int)ceil((houseHealth / houseMaxHealth) * totalChunks);
+    drawHealthBarChunks(15, 24.5, 1.4, 1.2, 0.3, totalChunks, filledHouseChunks, 1, 0.5f, 0);
+
 
 
     //door
@@ -642,6 +715,7 @@ int main(int argc, char** argv)
     glutTimerFunc(0, updatePower, 0);
     glutTimerFunc(0, update_cross, 0);
     glutKeyboardFunc(keyboard);
+    printf("enemy1: %.1f, %.1f\n", enemy1X, enemy1Y);
 
     glutMainLoop();
 
