@@ -259,10 +259,36 @@ void Player()
     glTranslatef(-tx, -ty, 0);
 }
 
+void cross(){
+    //cross
+    glTranslatef(-16.5,-23,0.0);
+        glRotatef(rotation,0.0, 0.0, 1.0);
+
+
+    glColor3f(1,1,0);
+    glBegin(GL_QUADS);
+        glVertex2f(-4, -1);
+        glVertex2f(4, -1);
+        glVertex2f(4, 1);
+        glVertex2f(-4, 1);
+    glEnd();
+
+
+    glBegin(GL_QUADS);
+        glVertex2f(-1, -4);
+        glVertex2f(1, -4);
+        glVertex2f(1, 4);
+        glVertex2f(-1, 4);
+    glEnd();
+}
+
 void display()
 {
     glClearColor(0.40f, 0.80f, 0.40f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
 
 
@@ -305,6 +331,8 @@ void display()
         glVertex2f(-15,-30);
 
     glEnd();
+
+
 
 
 
@@ -362,6 +390,10 @@ void display()
     if (enemy3Alive)
         Enemy(enemy3X, enemy3Y);
 
+
+
+    glLoadIdentity();
+
     glTranslatef(25, -25, 0);
     glRotatef(angle, 1, 1, 0);
 
@@ -405,27 +437,9 @@ void display()
 
     glEnd();
 
-    //cross
-    glTranslatef(-17,-23,0.0);
-        glRotatef(rotation,0.0, 0.0, 1.0);
-
-
-        glBegin(GL_QUADS);
-            glVertex2f(-25, 10);
-            glVertex2f(-15, 20);
-            glVertex2f(25, -10);
-            glVertex2f(15, -20);
-        glEnd();
-
-        glBegin(GL_QUADS);
-            glVertex2f(-25, -10);
-            glVertex2f(15, 20);
-            glVertex2f(25, 10);
-            glVertex2f(-15, -20);
-        glEnd();
-
-
     glLoadIdentity();
+    cross();
+
 
     glutSwapBuffers();
 }
