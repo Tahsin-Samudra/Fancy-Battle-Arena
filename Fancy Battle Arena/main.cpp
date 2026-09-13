@@ -18,7 +18,7 @@ float powerRadius = 1.5f;
 
 float e1houseX = -15.0f;
 float e1houseY = 10.0f;
-
+float rotation = 0.0;
 float enemy1X = 15.0f;
 float enemy1Y = -10.0f;
 
@@ -264,6 +264,91 @@ void display()
     glClearColor(0.40f, 0.80f, 0.40f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+
+    //door
+    glBegin(GL_QUADS);
+
+        glColor3f(1,0,0);
+
+        glVertex2f(-27,-30);
+        glVertex2f(-27,-26);
+        glVertex2f(-23,-26);
+        glVertex2f(-23,-30);
+
+
+
+    glEnd();
+
+    //Farm House
+    glBegin(GL_POLYGON);
+
+        glColor3f(0.0f, 0.45f, 1.0f);
+
+        glVertex2f(-30,-30);
+        glVertex2f(-30,-25);
+        glVertex2f(-25,-20);
+        glVertex2f(-20,-25);
+        glVertex2f(-20,-30);
+
+    glEnd();
+
+
+    //mill
+    glBegin(GL_QUADS);
+
+        glColor3f(0.0f, 0.45f, 1.0f);
+
+        glVertex2f(-18,-30);
+        glVertex2f(-18,-24);
+        glVertex2f(-15,-24);
+        glVertex2f(-15,-30);
+
+    glEnd();
+
+
+
+
+    //House
+    //Door1
+    glBegin(GL_QUADS);
+
+        glColor3f(0.0f, 0.45f, 1.0f);
+
+        glVertex2f(-21,21);
+        glVertex2f(-21,26);
+        glVertex2f(-18,26);
+        glVertex2f(-18,21);
+
+    glEnd();
+
+    //Door2
+    glBegin(GL_QUADS);
+
+        glColor3f(0.0f, 0.45f, 1.0f);
+
+        glVertex2f(-27,21);
+        glVertex2f(-27,26);
+        glVertex2f(-24,26);
+        glVertex2f(-24,21);
+
+    glEnd();
+
+    //body
+    glBegin(GL_QUADS);
+
+        glColor3f(0.95f, 0.95f, 0.95f);
+
+        glVertex2f(-30,21);
+        glVertex2f(-30,30);
+        glVertex2f(-15,30);
+        glVertex2f(-15,21);
+
+    glEnd();
+
+
+
+
     Player();
 
     Power();
@@ -320,9 +405,37 @@ void display()
 
     glEnd();
 
+    //cross
+    glTranslatef(-17,-23,0.0);
+        glRotatef(rotation,0.0, 0.0, 1.0);
+
+
+        glBegin(GL_QUADS);
+            glVertex2f(-25, 10);
+            glVertex2f(-15, 20);
+            glVertex2f(25, -10);
+            glVertex2f(15, -20);
+        glEnd();
+
+        glBegin(GL_QUADS);
+            glVertex2f(-25, -10);
+            glVertex2f(15, 20);
+            glVertex2f(25, 10);
+            glVertex2f(-15, -20);
+        glEnd();
+
+
     glLoadIdentity();
 
     glutSwapBuffers();
+}
+
+void update_cross(int value) {
+
+    rotation += 1;
+
+    glutPostRedisplay();
+    glutTimerFunc(16, update_cross, 0);
 }
 
 void updatePower(int value)
@@ -431,6 +544,7 @@ int main(int argc, char** argv)
     glutTimerFunc(0, updateEnemy, 0);
     glutTimerFunc(16, update, 0);
     glutTimerFunc(0, updatePower, 0);
+    glutTimerFunc(0, update_cross, 0);
     glutKeyboardFunc(keyboard);
 
     glutMainLoop();
