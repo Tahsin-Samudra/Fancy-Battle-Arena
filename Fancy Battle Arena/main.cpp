@@ -122,6 +122,86 @@ void Enemy(float enemyX, float enemyY)
 
     glEnd();
 }
+void tree(float x, float y) {
+    glTranslatef(x, y, 0);
+
+    //x : 3 , y : 2 (2x2 = 4)
+    glColor3f(0.60f, 0.32f, 0.15f);
+
+
+    float radius = 1.2;
+    float cx = -1.5;
+    float cy = 1.5;
+
+    glBegin(GL_TRIANGLE_FAN);
+
+    glColor3f(0, 1, 0);
+
+    for (int i = 0; i <=360; i++)
+    {
+        float angle = i * 3.14159 / 180;
+
+        float x = cx + radius * cos(angle);
+        float y = cy + radius * sin(angle);
+
+        glVertex3f(x, y, 0);
+    }
+
+    glEnd();
+
+    float radius1 = 1.5;
+    float cx1 = 0.0;
+    float cy1 = 3.4;
+
+    glBegin(GL_TRIANGLE_FAN);
+
+    glColor3f(0, 1, 0);
+
+    for (int i = 0; i <=360; i++)
+    {
+        float angle = i * 3.14159 / 180;
+
+        float x = cx1 + radius1 * cos(angle);
+        float y = cy1 + radius1 * sin(angle);
+
+        glVertex3f(x, y, 0);
+    }
+
+    glEnd();
+
+    float radius2 = 1.2;
+    float cx2 = 1.5;
+    float cy2 = 2.0;
+
+    glBegin(GL_TRIANGLE_FAN);
+
+    glColor3f(0, 1, 0);
+
+    for (int i = 0; i <=360; i++)
+    {
+        float angle = i * 3.14159 / 180;
+
+        float x = cx2 + radius2 * cos(angle);
+        float y = cy2 + radius2 * sin(angle);
+
+        glVertex3f(x, y, 0);
+    }
+
+    glEnd();
+
+    //body
+    glColor3f(0.60f, 0.32f, 0.15f);
+    glBegin(GL_QUADS);
+
+        glVertex2f(-1, -2);
+        glVertex2f(-1, 2);
+        glVertex2f(1, 2);
+        glVertex2f(1, -2);
+
+    glEnd();
+
+}
+
 
 void Power()
 {
@@ -375,6 +455,8 @@ void display()
     glEnd();
 
 
+    tree(15,16);
+    glLoadIdentity();
 
 
     Player();
