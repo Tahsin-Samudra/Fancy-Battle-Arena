@@ -8,8 +8,10 @@ float tx = 0.0, ty = 0.0;
 
 std::string Direction = "Right";
 
+bool gameOver = false;
 
-
+float playerRadius = 1.0f;
+float playerDamageRate = 0.5f;
 
 bool powerActive = false;
 
@@ -43,7 +45,7 @@ float enemy2Y = 10.0f;
 float enemy3X = 10.0f;
 float enemy3Y = -15.0f;
 
-float enemyRadius = 2.0f;
+float enemyRadius = 1.5f;
 
 bool enemy1Alive = true;
 bool enemy2Alive = true;
@@ -51,34 +53,61 @@ bool enemy3Alive = true;
 
 std::string powerDirection = "Right";
 
-bool collision(float powerX, float powerY, float enemyX, float enemyY)
+bool collision(float x1, float y1, float x2, float y2, float r1, float r2)
 {
-    float dx = powerX - enemyX;
-    float dy = powerY - enemyY;
-
+    float dx = x1 - x2;
+    float dy = y1 - y2;
     float distance = sqrt(dx * dx + dy * dy);
-
-    if (distance <= powerRadius + enemyRadius)
-        return true;
-
-    return false;
+    return distance <= r1 + r2;
 }
 
-void drawHealthBarChunks(float x, float y, float chunkWidth, float chunkHeight,
-                          float spacing, int totalChunks, int filledChunks,
-                          float r, float g, float b)
+void DDA(float x1, float y1, float x2, float y2)
+{
+    float dx= x2-x1;
+    float dy= y2-y1;
+    float m =dy/dx;
+     float x = x1;
+    float y = y1;
+
+    glPointSize(33);
+
+    glBegin(GL_POINTS);
+
+    if (fabs(m) < 1)
+    {
+        while(x <= x2 && y <= y2)
+        {
+            glVertex2i(x, y);
+            x=x+ 1;
+            y = y+m;
+        }
+    }
+    else
+    {
+        while(y<= y2)
+        {
+            glVertex2i(x, y);
+            y=y +1;
+            x =x +(1/m);
+        }
+    }
+
+    glEnd();
+
+
+}
+
+void drawHp(float x, float y, float chunkWidth, float chunkHeight,
+            float spacing, int totalChunks, int filledChunks,
+            float r, float g, float b)
 {
     glDisable(GL_DEPTH_TEST);
 
-    for (int i = 0; i < totalChunks; i++)
+    for (int i = 0; i < filledChunks; i++)
     {
         float chunkX = x + i * (chunkWidth + spacing);
 
-        // filled or empty color
-        if (i < filledChunks)
-            glColor3f(r, g, b);
-        else
-            glColor3f(0.2f, 0.2f, 0.2f);
+        glColor3f(r, g, b);
 
         glBegin(GL_QUADS);
             glVertex2f(chunkX, y);
@@ -96,12 +125,15 @@ void drawHealthBarChunks(float x, float y, float chunkWidth, float chunkHeight,
             glVertex2f(chunkX, y + chunkHeight);
         glEnd();
     }
+
     glEnable(GL_DEPTH_TEST);
 }
 
 
 void updateEnemy(int val)
 {
+    if (gameOver) return;
+
     if (enemy1Alive)
     {
         if (enemy1X < e1houseX)
@@ -113,7 +145,6 @@ void updateEnemy(int val)
         if (enemy1Y > e1houseY)
             enemy1Y -= 0.05f;
 
-
         float dx = enemy1X - houseTargetX;
         float dy = enemy1Y - houseTargetY;
         float dist = sqrt(dx * dx + dy * dy);
@@ -122,10 +153,17 @@ void updateEnemy(int val)
         {
             houseHealth -= houseDamageRate;
             if (houseHealth < 0) houseHealth = 0;
+            if (houseHealth <= 0 || playerHealth <= 0) gameOver = true;
+        }
+
+        if (collision(tx, ty, enemy1X, enemy1Y, playerRadius, enemyRadius))
+        {
+            playerHealth -= playerDamageRate;
+            if (playerHealth < 0) playerHealth = 0;
+            if (houseHealth <= 0 || playerHealth <= 0) gameOver = true;
         }
     }
 
-    // repeat the same block for enemy2Alive and enemy3Alive
     if (enemy2Alive)
     {
         if (enemy2X < e1houseX) enemy2X += 0.05f;
@@ -141,6 +179,14 @@ void updateEnemy(int val)
         {
             houseHealth -= houseDamageRate;
             if (houseHealth < 0) houseHealth = 0;
+            if (houseHealth <= 0 || playerHealth <= 0) gameOver = true;
+        }
+
+        if (collision(tx, ty, enemy2X, enemy2Y, playerRadius, enemyRadius))
+        {
+            playerHealth -= playerDamageRate;
+            if (playerHealth < 0) playerHealth = 0;
+            if (houseHealth <= 0 || playerHealth <= 0) gameOver = true;
         }
     }
 
@@ -159,12 +205,21 @@ void updateEnemy(int val)
         {
             houseHealth -= houseDamageRate;
             if (houseHealth < 0) houseHealth = 0;
+            if (houseHealth <= 0 || playerHealth <= 0) gameOver = true;
+        }
+
+        if (collision(tx, ty, enemy3X, enemy3Y, playerRadius, enemyRadius))
+        {
+            playerHealth -= playerDamageRate;
+            if (playerHealth < 0) playerHealth = 0;
+            if (houseHealth <= 0 || playerHealth <= 0) gameOver = true;
         }
     }
 
     glutPostRedisplay();
     glutTimerFunc(14, updateEnemy, 0);
 }
+
 
 void Enemy(float enemyX, float enemyY)
 {
@@ -189,7 +244,7 @@ void Enemy(float enemyX, float enemyY)
 void tree(float x, float y) {
     glTranslatef(x, y, 0);
 
-    //x : 3 , y : 2 (2x2 = 4)
+
     glColor3f(0.60f, 0.32f, 0.15f);
 
 
@@ -263,6 +318,8 @@ void tree(float x, float y) {
         glVertex2f(1, -2);
 
     glEnd();
+
+    glLoadIdentity();
 
 }
 
@@ -409,7 +466,7 @@ void cross(){
         glRotatef(rotation,0.0, 0.0, 1.0);
 
 
-    glColor3f(1,1,0);
+    glColor3f(0.88f, 0.86f, 0.78f);
     glBegin(GL_QUADS);
         glVertex2f(-4, -1);
         glVertex2f(4, -1);
@@ -433,22 +490,36 @@ void display()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    if (gameOver)
+    {
+        glColor3f(1, 0, 0);
+        glRasterPos2f(-6, 0);
+        std::string msg = "GAME OVER";
+        for (char c : msg)
+            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, c);
+
+        glutSwapBuffers();
+        return;
+    }
 
     glLoadIdentity();
 
     int totalChunks = 5;
     int filledHealthChunks = (int)ceil((playerHealth / playerMaxHealth) * totalChunks);
-    drawHealthBarChunks(15, 27, 1.4, 1.2, 0.3, totalChunks, filledHealthChunks, 0, 1, 0);
+    drawHp(15, 27, 1.4, 1.2, 0.3, totalChunks, filledHealthChunks, 0, 1, 0);
 
     int filledHouseChunks = (int)ceil((houseHealth / houseMaxHealth) * totalChunks);
-    drawHealthBarChunks(15, 24.5, 1.4, 1.2, 0.3, totalChunks, filledHouseChunks, 1, 0.5f, 0);
+    drawHp(15, 24.5, 1.4, 1.2, 0.3, totalChunks, filledHouseChunks, 1, 0.5f, 0);
 
-
+    //fence
+    glLoadIdentity();
+    DDA(20,-30,20,-20);
+    DDA(20,-20, 30,-20);
 
     //door
     glBegin(GL_QUADS);
 
-        glColor3f(1,0,0);
+        glColor3f(0.76f, 0.45f, 0.25f);
 
         glVertex2f(-27,-30);
         glVertex2f(-27,-26);
@@ -462,7 +533,7 @@ void display()
     //Farm House
     glBegin(GL_POLYGON);
 
-        glColor3f(0.0f, 0.45f, 1.0f);
+        glColor3f(0.50f, 0.25f, 0.10f);
 
         glVertex2f(-30,-30);
         glVertex2f(-30,-25);
@@ -471,22 +542,6 @@ void display()
         glVertex2f(-20,-30);
 
     glEnd();
-
-
-    //mill
-    glBegin(GL_QUADS);
-
-        glColor3f(0.0f, 0.45f, 1.0f);
-
-        glVertex2f(-18,-30);
-        glVertex2f(-18,-24);
-        glVertex2f(-15,-24);
-        glVertex2f(-15,-30);
-
-    glEnd();
-
-
-
 
 
 
@@ -518,7 +573,7 @@ void display()
     //body
     glBegin(GL_QUADS);
 
-        glColor3f(0.95f, 0.95f, 0.95f);
+        glColor3f(0.80f, 0.82f, 0.84f);
 
         glVertex2f(-30,21);
         glVertex2f(-30,30);
@@ -529,7 +584,18 @@ void display()
 
 
     tree(15,16);
-    glLoadIdentity();
+    tree(-28,-5);
+    tree(-25,2);
+    tree(-21,-8);
+    tree(-25,-10);
+    tree(-29,-10);
+    tree(-27,5);
+    tree(-22,-6);
+    tree(25,-6);
+    tree(24,14);
+
+
+
 
 
     Player();
@@ -594,6 +660,18 @@ void display()
 
     glLoadIdentity();
     cross();
+    glLoadIdentity();
+    //mill
+    glBegin(GL_QUADS);
+
+        glColor3f(0.30f, 0.12f, 0.04f);
+
+        glVertex2f(-18,-30);
+        glVertex2f(-18,-24);
+        glVertex2f(-15,-24);
+        glVertex2f(-15,-30);
+
+    glEnd();
 
 
     glutSwapBuffers();
@@ -609,6 +687,8 @@ void update_cross(int value) {
 
 void updatePower(int value)
 {
+    if (gameOver) return;
+
     if (powerActive)
     {
         if (powerDirection == "Up")
@@ -624,19 +704,19 @@ void updatePower(int value)
             powerPosX += powerSpeed;
 
 
-        if (enemy1Alive && collision(powerPosX, powerPosY, enemy1X, enemy1Y))
+        if (enemy1Alive && collision(powerPosX, powerPosY, enemy1X, enemy1Y, powerRadius, enemyRadius))
         {
             enemy1Alive = false;
             powerActive = false;
         }
 
-        if (enemy2Alive && collision(powerPosX, powerPosY, enemy2X, enemy2Y))
+        if (enemy2Alive && collision(powerPosX, powerPosY, enemy2X, enemy2Y, powerRadius, enemyRadius))
         {
             enemy2Alive = false;
             powerActive = false;
         }
 
-        if (enemy3Alive && collision(powerPosX, powerPosY, enemy3X, enemy3Y))
+        if (enemy3Alive && collision(powerPosX, powerPosY, enemy3X, enemy3Y, powerRadius, enemyRadius))
         {
             enemy3Alive = false;
             powerActive = false;
@@ -649,6 +729,8 @@ void updatePower(int value)
 
 void update(int value)
 {
+    if (gameOver) return;
+
     angle += 1;
 
     glutPostRedisplay();
@@ -697,7 +779,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
     glutInitWindowSize(1980, 1080);
-    glutCreateWindow("3D Objects");
+    glutCreateWindow("Frame01");
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -715,7 +797,14 @@ int main(int argc, char** argv)
     glutTimerFunc(0, updatePower, 0);
     glutTimerFunc(0, update_cross, 0);
     glutKeyboardFunc(keyboard);
-    printf("enemy1: %.1f, %.1f\n", enemy1X, enemy1Y);
+
+    printf("Mission : Save The House At Any Cost\n");
+
+    printf("Press 'w' to move upward\n");
+    printf("Press 'a' to move left\n");
+    printf("Press 'd' to move right\n");
+    printf("Press 's' to move downward\n");
+    printf("Press 'j' to use power\n");
 
     glutMainLoop();
 
